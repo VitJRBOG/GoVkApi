@@ -1,4 +1,4 @@
-package main
+package govkapi
 
 import (
 	"encoding/json"
