@@ -1,3 +1,3 @@
-module github.com/VitJRBOG/GoVkApi/v2
+module github.com/VitJRBOG/GoVkApi/v3
 
 go 1.15

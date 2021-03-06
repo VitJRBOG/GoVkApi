@@ -8,15 +8,10 @@ import (
 	"net/url"
 )
 
-func Method(methodName, accessToken string, values map[string]string) ([]byte, error) {
-	u, err := createURL(methodName)
-	if err != nil {
-		return nil, err
-	}
+func Method(methodName string, values url.Values) ([]byte, error) {
+	u := createURL(methodName)
 
-	u = addQueryParamsToURL(u, accessToken, values)
-
-	r, err := sendRequest(u.String())
+	r, err := sendRequest(u, values)
 	if err != nil {
 		return nil, err
 	}
@@ -33,30 +28,13 @@ func Method(methodName, accessToken string, values map[string]string) ([]byte, e
 	return v.Response, nil
 }
 
-func createURL(methodName string) (*url.URL, error) {
-	vkApiURL := "https://api.vk.com/method/"
-	u, err := url.Parse(vkApiURL + methodName)
-	if err != nil {
-		return nil, err
-	}
-	return u, nil
-}
-
-func addQueryParamsToURL(u *url.URL, accessToken string, params map[string]string) *url.URL {
-	p := url.Values{}
-	for key, param := range params {
-		p.Set(key, param)
-	}
-	p.Set("access_token", accessToken)
-	p.Set("lang", "0")
-
-	u.RawQuery = p.Encode()
-
+func createURL(methodName string) string {
+	u := fmt.Sprintf("https://api.vk.com/method/%s", methodName)
 	return u
 }
 
-func sendRequest(u string) ([]byte, error) {
-	response, err := http.Get(u)
+func sendRequest(u string, values url.Values) ([]byte, error) {
+	response, err := http.PostForm(u, values)
 	if err != nil {
 		return nil, err
 	}

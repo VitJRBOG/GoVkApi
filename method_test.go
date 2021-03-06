@@ -2,7 +2,6 @@ package govkapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -11,13 +10,13 @@ import (
 
 func TestMethod(t *testing.T) {
 	methodName := "users.get"
-	accessToken := "123" // вставить рабочий access token
-	params := map[string]string{
-		"user_ids": "1",
-		"v":        "5.126",
+	params := url.Values{
+		"access_token": {"123"}, // вставить рабочий access token
+		"user_ids":     {"1"},
+		"v":            {"5.126"},
 	}
 
-	r, err := Method(methodName, accessToken, params)
+	r, err := Method(methodName, params)
 
 	if err != nil {
 		t.Error("returned error:", err.Error())
@@ -34,73 +33,28 @@ func TestMethod(t *testing.T) {
 func TestCreateURL(t *testing.T) {
 	methodName := "users.get"
 
-	u, err := createURL(methodName)
+	u := createURL(methodName)
 
 	e := "https://api.vk.com/method/" + methodName
 
-	if err != nil {
-		t.Error("returned error:", err.Error())
-	}
-
-	if u == nil {
-		t.Error("url is nil")
+	if len(u) == 0 {
+		t.Error("url is empty")
 	} else {
-		if u.String() != e {
-			t.Error("bad url\ngot:", u.String(), "\nexpected:", e)
-		}
-	}
-}
-
-func TestAddQueryParamsToURL(t *testing.T) {
-	vkApiURL := "https://api.vk.com/method/"
-	methodName := "users.get"
-	accessToken := "123" // вставить рабочий access token
-	params := map[string]string{
-		"user_ids": "1",
-		"v":        "5.126",
-	}
-
-	u, err := url.Parse(vkApiURL + methodName)
-	if err != nil {
-		t.Error("returned error:", err.Error())
-	}
-
-	e := fmt.Sprintf("%s%s?access_token=%s&lang=0&user_ids=1&v=5.126", vkApiURL, methodName, accessToken)
-
-	u = addQueryParamsToURL(u, accessToken, params)
-	if u == nil {
-		t.Error("url is nil")
-	} else {
-		if u.String() != e {
-			t.Error("bad url\ngot:", u.String(), "\nexpected:", e)
+		if u != e {
+			t.Error("bad url\ngot:", u, "\nexpected:", e)
 		}
 	}
 }
 
 func TestSendRequest(t *testing.T) {
-	vkApiURL := "https://api.vk.com/method/"
-	methodName := "users.get"
-	accessToken := "123" // вставить рабочий access token
-	params := map[string]string{
-		"user_ids": "1",
-		"v":        "5.126",
+	u := "https://api.vk.com/method/users.get"
+	params := url.Values{
+		"access_token": {"123"}, // вставить рабочий access token
+		"user_ids":     {"1"},
+		"v":            {"5.126"},
 	}
 
-	u, err := url.Parse(vkApiURL + methodName)
-	if err != nil {
-		t.Error("returned error:", err.Error())
-	}
-
-	p := url.Values{}
-	for key, param := range params {
-		p.Set(key, param)
-	}
-	p.Set("access_token", accessToken)
-	p.Set("lang", "0")
-
-	u.RawQuery = p.Encode()
-
-	r, err := sendRequest(u.String())
+	r, err := sendRequest(u, params)
 	if err != nil {
 		t.Error("returned error:", err.Error())
 	}
@@ -114,29 +68,14 @@ func TestSendRequest(t *testing.T) {
 }
 
 func TestParseVkApiResponseBody(t *testing.T) {
-	vkApiURL := "https://api.vk.com/method/"
-	methodName := "users.get"
-	accessToken := "123" // вставить рабочий access token
-	params := map[string]string{
-		"user_ids": "1",
-		"v":        "5.126",
+	u := "https://api.vk.com/method/users.get"
+	params := url.Values{
+		"access_token": {"123"}, // вставить рабочий access token
+		"user_ids":     {"1"},
+		"v":            {"5.126"},
 	}
 
-	u, err := url.Parse(vkApiURL + methodName)
-	if err != nil {
-		t.Error("returned error:", err.Error())
-	}
-
-	p := url.Values{}
-	for key, param := range params {
-		p.Set(key, param)
-	}
-	p.Set("access_token", accessToken)
-	p.Set("lang", "0")
-
-	u.RawQuery = p.Encode()
-
-	response, err := http.Get(u.String())
+	response, err := http.PostForm(u, params)
 	if err != nil {
 		t.Error("returned error:", err.Error())
 	}
